@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maluta looooooooooong Pub Crawl</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      position: relative;
+      width: 100%;
+      padding-top: 100%; /* aspect ratio 1:1 */
+      perspective: 1000px;
+    }
+    .card-inner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      transition: transform 0.8s;
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .card-front {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-size: cover;
+      background-position: center;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      background-blend-mode: overlay;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+    .card-back {
+      background: white;
+      transform: rotateY(180deg);
+      padding: 15px;
+      box-sizing: border-box;
+    }
+    .card-back a {
+      color: #007BFF;
+      text-decoration: none;
+    }
+    .map-container {
+      margin-top: 40px;
+      text-align: center;
+    }
+    .map-container iframe {
+      max-width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="grid" id="grid"></div>
+
+  <div class="map-container">
+    <iframe src="https://www.google.com/maps/d/embed?mid=1vW27UthuCN-SUhG646HZsVM3VkZvwgs&ehbc=2E312F" width="640" height="480"></iframe>
+  </div>
+
+  <script>
+    const data = [
+      {
+        nome: "Estraperlo",
+        indirizzo: "Barceloneta",
+        sito: "https://www.instagram.com/estraperlobarceloneta/",
+        note: "Birre che ci stanno, cibo costosetto ma un minimo gourmet. Ci eravamo stati 3 anni fa",
+        prezzi: "Normali, alti per le porzioni che danno",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipM-wuW4X1NhUGBvj2xAkwavZ9VM6lNBSgVgJfiA=s1360-w1360-h1020"
+      },
+      {
+        nome: "Fermin",
+        indirizzo: "Barceloneta",
+        sito: "www.caccol.it",
+        note: "Birre buone, molte neipa e wc ipa, a volte hanno delle stout incazzate. Una decina di fusti",
+        prezzi: "Normali, vermut a 3€ o cose del genere. Pinte dai 5 agli 8-9",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipPTarGt9JKmCOJgktRk90jkgqEQEDXeRUlg3WQE=s680-w680-h510"
+      },
+      {
+        nome: "Black Lab",
+        indirizzo: "Barceloneta",
+        sito: "www.blacklab.es",
+        note: "Birre tutte loro, fatte in loco. Non male ma nulla dell'altro mondo.",
+        prezzi: "Non economicissimo, ma orario aperitivo pinta a 5€",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipN-dvSo2ngsjnrmTNMVayfqp7GEZFmz7OwkVf-9=s1360-w1360-h1020"
+      },
+      {
+        nome: "VeganCat Bar",
+        indirizzo: "Via Sciffo",
+        sito: "https://catbar.cat",
+        note: "Hanno una decina di fusti, molti a sfintere, a pompa, come si chiama. Il tipo è un inglese matto come un cavallo, quindi molte english",
+        prezzi: "Piccole 3.5/4, pinte a 6. Burger+bravas a 12.5",
+        immagine: "https://lh3.googleusercontent.com/gps-cs-s/AB5caB_qne0O16umuCGSX3K_pQtnfvke3h7QsM4WKcT5Su-Mrxp8nvXHETX5SDiwLleewxA0kPzgGRY5Uk4uefXtipdNJEDeiJIIbu82YBsRt486AXMGZfTFKfb0Le--seHaduf9gHqM=s1360-w1360-h1020"
+      },
+      {
+        nome: "Kælderkold",
+        indirizzo: "Barri Gotic",
+        sito: "https://www.kaelderkold.com/",
+        note: "Tante spine, un tempo erano variate. Adesso si son messi a farle loro e hanno un po' abbassato il livello",
+        prezzi: "È da un po' che non vado, ma direi nella norma.",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipPF9rIB0YBFn5QmCsg3N-tUyIZ5mRnlsaqV9uvx=s1360-w1360-h1020"
+      },
+      {
+        nome: "Ølgod Brewpub",
+        indirizzo: "Raval",
+        sito: "www.olgodbcn.com",
+        note: "Stessa famiglia del Kaelderkold, birre loro. Hanno un bigliardo! E dei flight da assaggio",
+        prezzi: "Come il Kaelderkold",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipMZ-9zA8uH1iQqLCJyZ4fv6I0UC6eM0eYFIfuK5=s1360-w1360-h1020"
+      },
+      {
+        nome: "Bar Del Toro",
+        indirizzo: "Raval",
+        sito: "-",
+        note: "Bar tipico spagnolo ma molta atmosfera. Si mangia pure, tostate con cose sopra. ",
+        prezzi: "Estrella a 2-3€",
+        immagine: "https://lh3.googleusercontent.com/gps-cs-s/AB5caB_GO9DzkFABc0TMhhmtESHZSm8mWAI6q_qtM__EpW1go3L4cKGUlgxfQceN8gNo6chDKczOXFjAAjlgomq1mUsYVISxR-IgRSJ4ECkm3InHOcWDQ-5kxMEvCovlRJ6J5XaTyks0AQ=s1360-w1360-h1020"
+      },
+      {
+        nome: "Abirradero",
+        indirizzo: "Poblesec",
+        sito: "www.abirradero.com",
+        note: "Birre loro e non. Si può anche mangiare, mi ricordo che non era male ma è un botto che non vado",
+        prezzi: "Normali",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipMOy3yci5pGwo493FqqWzty2_gXGLR5WU8V5fBM=s1360-w1360-h1020"
+      },
+      {
+        nome: "El Rincòn del Cava",
+        indirizzo: "Poblesec",
+        sito: "-",
+        note: "tipico baretto catalano non ancora ingollato dalla globalizzazione. Bicchieri dal freezer.",
+        prezzi: "Tapas e birre a 1€. Sí, avete letto bene.",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipN0yDDPhu1_NJTX1DUuDNYNr_vveTcB7DfeMsy0=s1360-w1360-h1020"
+      },
+      {
+        nome: "Barna-Brew",
+        indirizzo: "Sant Antoni",
+        sito: "www.barnabrew.com",
+        note: "Bah, nulla di eccezionale ma le cose che fanno ci stanno. Stili abbastanza basici l'ultima volta che sono andato",
+        prezzi: "Normali",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipNxFDjQCS9iFSTEz6Hf7IVsdPbfc4rNUDk41OsO=s1360-w1360-h1020"
+      },
+      {
+        nome: "Lambicus",
+        indirizzo: "Sant Antoni",
+        sito: "www.lambicus.com",
+        note: "Belgiazze ma un sacco di chicche tipo Pannepot del 2012",
+        prezzi: "c'è un po' di tutto, dipendendo dalle bottiglie",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipPijyWq8USnS_ConIuNWzSdBP_rPYLppZxQ_jL0=s1360-w1360-h1020"
+      },
+      {
+        nome: "La més petita",
+        indirizzo: "Esquerra del Eixample",
+        sito: "www.cerveserialamespetita.cat",
+        note: "Birreria piccolissima, una stanzetta e qualche tavolo fuori. Carina",
+        prezzi: "No idea",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipMwt3nawHVy29IBV-KwrLUn73gMs_4p8YZHI31E=s680-w680-h510"
+      },
+      {
+        nome: "Maresme Brewery Taproom",
+        indirizzo: "Sant Antoni",
+        sito: "www.maresmebrewery.com",
+        note: "birre loro e qualche ospite. Gran bel locale, ottime birre, si può anche mangiare ma a volte i tempi sono lunghi",
+        prezzi: "c'è di tutto, nella norma direi.",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipM29kNUUpDe1kBCFHX_2a48Qr9xwonYuDxbfVA4=s680-w680-h510"
+      },
+      {
+        nome: "OKasional Beer",
+        indirizzo: "Sant Antoni",
+        sito: "www.okasional-beer.com",
+        note: "Beershop cazzutamente fornito. C'ha pure una rotazione di 3-4 spine locali.",
+        prezzi: "di tutto",
+        immagine: "https://lh3.googleusercontent.com/gps-cs-s/AB5caB8rzrTwm-aDDB75s31Bz99MgptVvRPRuZVbkZAC_hpbdnA8V-ZsiyivAktYc5bA_ZNcr7GGt-JGmDaPOnzEXs2qq2678RXewXE42ZhpNqOw5EEjZeUct3H0MacdYL1ZmiQGUucM=s680-w680-h510"
+      },
+      {
+        nome: "Cervezeria Ogham",
+        indirizzo: "Esquerra del Eixample",
+        sito: "www.ogham.com",
+        note: "Mai stato. La birra sta migliorando di qualità",
+        prezzi: "No idea",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipNAdifHpg2lXSbSsQE7slVZEEe-pdXAlpOIki7s=s1360-w1360-h1020"
+      },
+      {
+        nome: "BierCab",
+        indirizzo: "Esquerra del Eixample",
+        sito: "www.sciffo.it",
+        note: "La birreria con più spine che ho vista a Barcellona. Ottima cucina, abbastanza affollato a volte",
+        prezzi: "Non economica se non ricordo male",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipPIpcZh9-xrRLwag37unA_kHgPPWDUXiyCBe5mi=s1360-w1360-h1020"
+      },
+      {
+        nome: "Garage Beer Co",
+        indirizzo: "Esquerra del Eixample",
+        sito: "www.garagebeer.co",
+        note: "Ottime birre. Fanno anche da mangiare, ma Poblenou forse è meglio e meno caotico",
+        prezzi: "Normali",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipO1fglWsv9Yun43rXEMXB7fFx1II--8_7UvUkVe=s1360-w1360-h1020"
+      },
+      {
+        nome: "Blacklab Tao Room",
+        indirizzo: "Esquerra del Eixample",
+        sito: "www.blacklab.es",
+        note: "Tap room dell'altra Blacklab della Barceloneta. Forse prezzi inferiori, non credo si mangi",
+        prezzi: "Credo simili all'altr",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipNWrXB2Pg3Q6GOSFx37XGIKKtLJNtj49TPmc8az=s1360-w1360-h1020"
+      },
+      {
+        nome: "Humble Beer",
+        indirizzo: "Esquerra del Eixample",
+        sito: "-",
+        note: "Stato una volta, gran bella impressione. Gentili e simpatici e le birre interessanti",
+        prezzi: "Non ricordo",
+        immagine: "https://lh3.googleusercontent.com/gps-cs-s/AB5caB9St6xkf-H5a00kzqKOS_ZDejn2iP8J0XZc9JPp2v-0qPlyZq-UDfkhFRcTrP9p2pWTb2r6WhQH2r2IJdOqq_toTM0ZntqGNJLijC5QNWjECuYJukMzC-8cNshwA1YRgITKJHhR-A=s680-w680-h510"
+      },
+      {
+        nome: "Missa Bar",
+        indirizzo: "Gracia",
+        sito: "-",
+        note: "Eravamo stati con Stu una volta quando si chiamava ancora La Beata. Adesso non ho idea di come sia",
+        prezzi: "Non ho idea",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipP_7xI1m-Xr7dFWXMd8_3qBrH1RXgtnJUJN7tly=s680-w680-h510"
+      },
+      {
+        nome: "El Sol de Gracia",
+        indirizzo: "Gracia",
+        sito: "www.sciffo.it",
+        note: "Beer shop molto fornito. Il tipo è polacco, un sacco di birre polacche.",
+        prezzi: "Di tutto",
+        immagine: "https://lh3.googleusercontent.com/gps-cs-s/AB5caB95gd_bSAoPdzP87UZrkowatdUJn5Nm1bEvyKa5ee-zzrkMKQa2MvUXtgRHF_vZHkFIpNUWwUVoVmgiR1rIclcKP0YUKa-AtEaa1SZnmdp1-1QDjiEnsPbIEghHfqNMM9nMDb4=s1360-w1360-h1020"
+      },
+      {
+        nome: "Espiga Beer Shop",
+        indirizzo: "Sagrada Familia",
+        sito: "www.espiga.cat",
+        note: "Beer shop dell'Espiga. 3-4 spine loro e 4 frigo con roba loro e altri",
+        prezzi: "Sono aumentati recentemente, nella norma",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipP2dfIDEfSbs2GPlibsFZZ6eoedZgMhPlU0Eg9S=s1360-w1360-h1020"
+      },
+      {
+        nome: "Hop Town",
+        indirizzo: "Sagrada Familia",
+        sito: "www.hoptownbcn.com",
+        note: "Birre buone, sono argentini. Fanno qualcosina da mangiare",
+        prezzi: "Un po' esosi coi prezzi",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipP359lOnOH8wBz9698Iv3tf3msZx61rpeJD0GyC=s680-w680-h510"
+      },
+      {
+        nome: "La Bona Pinta",
+        indirizzo: "Sagrada Familia",
+        sito: "www.labonapinta.com",
+        note: "Gran localino, beershop con 6-7 spine. Con Stu ci siam fatti qualche chicca muy negra da 15 gradi",
+        prezzi: "Di tutto",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipOYALUOBT2VZjKEB0itN4dvZjT5_rj6KZFYS1uT=s680-w680-h510"
+      },
+      {
+        nome: "Hoppiness",
+        indirizzo: "Poblenou",
+        sito: "-",
+        note: "Bel locale, buone birre, si mangia nel caso. Con Stu ci siam passati un paio di volte",
+        prezzi: "Normali",
+        immagine: "https://lh3.googleusercontent.com/gps-cs-s/AB5caB_uTsse16ufW4E_HwrzXxX2sAjRFdfQc0b0883EhoOu7MOUH9J-Lt3XnFlhhEmDF01pmzPf1r3acx1NFEwnu5vi6_WWe3ORDt2UqAB6khBlW5ZG1XRBLofbT-dfR57kbfBQ3EhG=s1360-w1360-h1020"
+      },
+      {
+        nome: "La Cervecita Nuestra De Cada Dia",
+        indirizzo: "Poblenou",
+        sito: "-",
+        note: "Mai stato",
+        prezzi: "No idea",
+        immagine: "https://lh3.googleusercontent.com/p/AF1QipPqxeJNm0u2MU_cIqoTfgLRUDUhpwXJWODkrUCg=s1360-w1360-h1020"
+      },
+      {
+        nome: "Garage Beer Poblenou",
+        indirizzo: "Poblenou",
+        sito: "www.garagebeer.co",
+        note: "Bel locale, buone birre (loro), buon cibo, a due passi dal mare.",
+        prezzi: "Nella norma",
+        immagine: "https://lh3.googleusercontent.com/gps-cs-s/AB5caB8g1irHLDXMtzW0S3WagTu34vVYTaplFRU-zjYWV-wOZaWWOvDEl4MD2PC5geebxZb02w4I5j9gam7Y6pDYYx6Ky8EunZImi_QS8oq6XSBMq3Puyn3MM9tQ5E_DOKTCX-Fip3w=s1360-w1360-h1020"
+      }
+    ];
+
+    const grid = document.getElementById('grid');
+
+    data.forEach((rist, index) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const inner = document.createElement('div');
+      inner.className = 'card-inner';
+
+      const front = document.createElement('div');
+      front.className = 'card-front';
+      const bgImg = rist.immagine || `https://via.placeholder.com/200?text=${encodeURIComponent(rist.nome)}`;
+      front.style.backgroundImage = `url('${bgImg}')`;
+      front.innerText = `${index + 1}. ${rist.nome}`;
+
+      const back = document.createElement('div');
+      back.className = 'card-back';
+      back.innerHTML = `
+        <strong>${rist.nome}</strong><br>
+        Barrio: ${rist.indirizzo}<br>
+        Sito: <a href="http://${rist.sito}" target="_blank">${rist.sito}</a><br>
+        Note: ${rist.note}<br>
+        Prezzi: ${rist.prezzi}
+      `;
+
+      inner.appendChild(front);
+      inner.appendChild(back);
+      card.appendChild(inner);
+
+      card.addEventListener('click', () => {
+        card.classList.toggle('flipped');
+      });
+
+      grid.appendChild(card);
+    });
+  </script>
+</body>
+</html>
